@@ -1,7 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 import random
-import io
-import contextlib
 
 app = Flask(__name__)
 
@@ -29,9 +27,7 @@ QUESTIONS = [
     {"code": "for i in range(3):\n    for j in range(2):\n        print(i, j)", "answer": "0 0\n0 1\n1 0\n1 1\n2 0\n2 1"}
 ]
 
-# 현재 문제를 저장할 임시 변수 (간단하게 전역 사용)
 current_question = {}
-
 
 @app.route('/')
 def index():
@@ -39,13 +35,12 @@ def index():
     current_question = random.choice(QUESTIONS)
     return render_template('index.html', code_snippet=current_question["code"])
 
-
 @app.route('/check', methods=['POST'])
 def check_answer():
     global current_question
     user_answer = request.json.get("answer", "").strip()
 
-    correct_output = execute_code(current_question["code"]).strip()
+    correct_output = current_question["answer"].strip()
 
     if user_answer == correct_output:
         result = 'correct'
@@ -57,17 +52,6 @@ def check_answer():
         "correct_answer": correct_output
     })
 
-
-# 실제 코드 실행 결과를 문자열로 반환
-def execute_code(code_str):
-    output = io.StringIO()
-    try:
-        with contextlib.redirect_stdout(output):
-            exec(code_str, {})  # 빈 전역 네임스페이스에서 실행
-    except Exception as e:
-        return f"Error: {e}"
-    return output.getvalue().strip()
-
-
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+
