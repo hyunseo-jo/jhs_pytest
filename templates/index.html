@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>야, 너두 파이썬?</title>
+
+    <!-- D2Coding 폰트 -->
+    <link href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2107@1.0/D2Coding.css" rel="stylesheet">
+
+    <!-- 스타일시트 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 야, 너두 파이썬?</h1>
+        <p>아래 제시된 파이썬 코드의 출력 결과를 맞혀보세요!</p>
+
+        <!-- 문제 코드 출력 -->
+        <div class="code-box">
+            <pre><code id="python-code">{{ code_snippet }}</code></pre>
+        </div>
+
+        <!-- 사용자 입력 -->
+        <div class="input-area">
+            <label for="user-output">예상 출력 결과:</label><br>
+            <textarea id="user-output" rows="4" placeholder="여기에 출력 결과를 적어보세요..."></textarea>
+        </div>
+
+        <!-- 버튼 영역 -->
+        <div class="buttons">
+            <button id="check-answer">정답 확인</button>
+            <button id="next-question" disabled>다음 문제</button>
+            <button id="show-answer" style="display: none;">정답 보기</button>
+        </div>
+
+        <!-- 결과 피드백 출력 -->
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- 자바스크립트 -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

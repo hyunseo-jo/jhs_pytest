@@ -1,0 +1,101 @@
+/* ===== 전체 다크 테마 설정 ===== */
+body {
+    background-color: #1e1e2f;
+    color: #e0e0e0;
+    font-family: 'D2Coding', monospace;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== 중앙 콘텐츠 박스 ===== */
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: #2a2a3d;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== 제목 ===== */
+h1 {
+    text-align: center;
+    font-size: 2.5em;
+    color: #66d9ef;
+    margin-bottom: 10px;
+}
+
+/* ===== 설명 텍스트 ===== */
+p {
+    text-align: center;
+    font-size: 1.2em;
+    color: #c0c0c0;
+}
+
+/* ===== 파이썬 코드 박스 ===== */
+.code-box {
+    background-color: #1e1e2f;
+    color: #f8f8f2;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    margin: 20px 0;
+    white-space: pre-wrap;
+    border: 1px solid #444;
+    font-family: 'D2Coding', monospace;
+}
+
+/* ===== 입력창 영역 ===== */
+.input-area textarea {
+    width: 100%;
+    background-color: #111827;
+    color: #d1d5db;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 1em;
+    resize: vertical;
+    font-family: 'D2Coding', monospace;
+}
+
+.input-area label {
+    font-weight: bold;
+    font-size: 1em;
+}
+
+/* ===== 버튼 영역 ===== */
+.buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    margin: 0 10px;
+    font-size: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'D2Coding', monospace;
+}
+
+button:hover {
+    background-color: #2563eb;
+}
+
+/* ===== 결과 피드백 ===== */
+.feedback {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #22c55e; /* 정답일 때 초록 */
+}
+
+/* 오답일 때 색상 변경용 클래스 */
+.feedback.wrong {
+    color: #ef4444; /* 오답일 때 빨강 */
+}
