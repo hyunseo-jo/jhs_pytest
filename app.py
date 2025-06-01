@@ -11,7 +11,12 @@ QUESTIONS = [
     {"code": "print('Hello' + 'World')", "answer": "HelloWorld"},
     {"code": "a = 3\nb = 4\nprint(a * b)", "answer": "12"},
     {"code": "print(len('Python'))", "answer": "6"},
-    {"code": "print('파이썬'.upper())", "answer": "파이썬"},
+    # 조건문 문제들 (기존 QUESTIONS 리스트에 추가 가능)
+    {"code": "x = 10\nif x > 5:\n    print('크다')", "answer": "크다"},
+    {"code": "score = 85\nif score >= 90:\n    print('A')\nelif score >= 80:\n    print('B')\nelse:\n    print('C')", "answer": "B"},
+    {"code": "num = 3\nif num % 2 == 0:\n    print('짝수')\nelse:\n    print('홀수')", "answer": "홀수"},
+    {"code": "a = 5\nb = 7\nif a > b:\n    print(a)\nelse:\n    print(b)", "answer": "7"},
+    {"code": "x = -3\nif x > 0:\n    print('양수')\nelif x == 0:\n    print('0')\nelse:\n    print('음수')", "answer": "음수"},
     {"code": "print(10 // 3)", "answer": "3"},
     {"code": "print(10 % 3)", "answer": "1"},
     {"code": "for i in range(2):\n    print('Hi')", "answer": "Hi\nHi"},
