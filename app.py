@@ -12,7 +12,7 @@ SCORE_FILE = 'students_score.json'
 
 # 퀴즈 문제 목록
 QUESTIONS = [
-   {"code": "print(1 + 2)", "answer": "3"},
+    {"code": "print(1 + 2)", "answer": "3"},
     {"code": "print('Hello' + 'World')", "answer": "HelloWorld"},
     {"code": "a = 3\nb = 4\nprint(a * b)", "answer": "12"},
     {"code": "print(len('Python'))", "answer": "6"},
@@ -53,7 +53,7 @@ def save_scores(scores):
 # 전역 점수 딕셔너리
 students_score = load_scores()
 
-# ---------- 라우트 정의 ----------
+# ---------- 라우트 ----------
 
 @app.route('/start', methods=['GET', 'POST'])
 def start():
@@ -81,7 +81,6 @@ def index():
         session['question_index'] = 0
 
     question = QUESTIONS[q_index]
-    session['code'] = question['code']
     return render_template('index.html',
                            code_snippet=question['code'],
                            my_score=students_score.get(name, 0),
@@ -91,16 +90,21 @@ def index():
 @app.route('/check', methods=['POST'])
 def check_answer():
     name = session.get('name')
+    q_index = session.get('question_index', 0)
+
     if not name or name not in students_score:
         return jsonify({"result": "error", "message": "세션이 만료되었거나 이름이 없습니다."})
 
+    if q_index >= len(QUESTIONS):
+        return jsonify({"result": "error", "message": "모든 문제를 완료했습니다."})
+
     user_answer = request.json.get("answer", "").strip()
-    code_str = session.get("code", "")
-    correct_output = execute_code(code_str).strip()
+    question = QUESTIONS[q_index]
+    correct_output = execute_code(question['code']).strip()
 
     if user_answer == correct_output:
         students_score[name] += 1
-        session['question_index'] = session.get('question_index', 0) + 1
+        session['question_index'] = q_index + 1
         save_scores(students_score)
         result = 'correct'
     else:
