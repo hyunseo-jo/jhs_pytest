@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, jsonify
-import random
+from flask import Flask, render_template, request, jsonify, session
+import io
+import contextlib
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key'  # 세션 사용을 위한 키 설정
 
 # 파이썬 코드 문제 리스트 (문제: 실제출력)
 QUESTIONS = [
@@ -27,23 +29,30 @@ QUESTIONS = [
     {"code": "for i in range(3):\n    for j in range(2):\n        print(i, j)", "answer": "0 0\n0 1\n1 0\n1 1\n2 0\n2 1"}
 ]
 
-current_question = {}
 
 @app.route('/')
 def index():
-    global current_question
-    current_question = random.choice(QUESTIONS)
+    question_index = session.get('question_index', 0)
+
+    if question_index >= len(QUESTIONS):
+        question_index = 0  # 모든 문제를 풀었으면 처음부터 다시
+
+    current_question = QUESTIONS[question_index]
+    session['question_index'] = question_index  # 현재 인덱스를 저장
+    session['code'] = current_question["code"]  # 정답 확인을 위해 코드 저장
+
     return render_template('index.html', code_snippet=current_question["code"])
+
 
 @app.route('/check', methods=['POST'])
 def check_answer():
-    global current_question
     user_answer = request.json.get("answer", "").strip()
-
-    correct_output = current_question["answer"].strip()
+    code_str = session.get("code", "")
+    correct_output = execute_code(code_str).strip()
 
     if user_answer == correct_output:
         result = 'correct'
+        session['question_index'] = session.get('question_index', 0) + 1  # 다음 문제로 이동
     else:
         result = 'wrong'
 
@@ -52,6 +61,17 @@ def check_answer():
         "correct_answer": correct_output
     })
 
+
+# 실제 코드 실행 결과를 문자열로 반환
+def execute_code(code_str):
+    output = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(output):
+            exec(code_str, {})
+    except Exception as e:
+        return f"Error: {e}"
+    return output.getvalue().strip()
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-
