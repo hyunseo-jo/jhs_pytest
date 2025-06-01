@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const showAnswerBtn = document.getElementById('show-answer');
     const feedback = document.getElementById('feedback');
     const userOutput = document.getElementById('user-output');
+    const myScoreDisplay = document.getElementById('my-score');
+    const rankingList = document.getElementById('ranking-list');
 
     let latestCorrectAnswer = null;
     let wrongCount = 0;
@@ -24,40 +26,44 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({ answer: userAnswer })
         })
-        .then(response => response.json())
-        .then(data => {
-            latestCorrectAnswer = data.correct_answer;
+            .then(response => response.json())
+            .then(data => {
+                latestCorrectAnswer = data.correct_answer;
 
-            if (data.result === 'correct') {
-                feedback.textContent = '🎉 정답입니다!';
-                feedback.classList.remove('wrong');
+                if (data.result === 'correct') {
+                    feedback.textContent = '🎉 정답입니다!';
+                    feedback.classList.remove('wrong');
 
-                nextBtn.disabled = false;
-                nextBtn.style.opacity = 1;
-                nextBtn.style.cursor = 'pointer';
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = 1;
+                    nextBtn.style.cursor = 'pointer';
 
-                // 정답 보기 버튼 숨기기
-                showAnswerBtn.style.display = 'none';
-            } else {
-                wrongCount += 1;
-                feedback.textContent = '❌ 오답입니다.';
-                feedback.classList.add('wrong');
+                    showAnswerBtn.style.display = 'none';
 
-                nextBtn.disabled = true;
-                nextBtn.style.opacity = 0.5;
-                nextBtn.style.cursor = 'not-allowed';
+                    // 점수 업데이트
+                    myScoreDisplay.textContent = data.my_score;
 
-                // 오답이 3회 이상일 때 정답 보기 버튼 보이기
-                if (wrongCount >= 3) {
-                    showAnswerBtn.style.display = 'inline-block';
+                    // 랭킹 업데이트
+                    updateRanking(data.ranking);
+                } else {
+                    wrongCount += 1;
+                    feedback.textContent = '❌ 오답입니다.';
+                    feedback.classList.add('wrong');
+
+                    nextBtn.disabled = true;
+                    nextBtn.style.opacity = 0.5;
+                    nextBtn.style.cursor = 'not-allowed';
+
+                    if (wrongCount >= 3) {
+                        showAnswerBtn.style.display = 'inline-block';
+                    }
                 }
-            }
-        })
-        .catch(error => {
-            feedback.textContent = '⚠️ 오류가 발생했습니다.';
-            feedback.classList.add('wrong');
-            console.error('Error:', error);
-        });
+            })
+            .catch(error => {
+                feedback.textContent = '⚠️ 오류가 발생했습니다.';
+                feedback.classList.add('wrong');
+                console.error('Error:', error);
+            });
     });
 
     // 정답 보기
@@ -74,4 +80,14 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = '/';
         }
     });
+
+    // 랭킹 리스트 업데이트 함수
+    function updateRanking(ranking) {
+        rankingList.innerHTML = '';
+        ranking.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.name} - ${item.score}점`;
+            rankingList.appendChild(li);
+        });
+    }
 });

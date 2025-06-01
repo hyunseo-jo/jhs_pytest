@@ -1,13 +1,13 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import io
 import contextlib
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key'  # 세션 사용을 위한 키 설정
+app.secret_key = 'your-secret-key'  # 세션용 비밀키
 
-# 파이썬 코드 문제 리스트 (문제: 실제출력)
+# 퀴즈 문제 목록
 QUESTIONS = [
-    {"code": "print(1 + 2)", "answer": "3"},
+ {"code": "print(1 + 2)", "answer": "3"},
     {"code": "print('Hello' + 'World')", "answer": "HelloWorld"},
     {"code": "a = 3\nb = 4\nprint(a * b)", "answer": "12"},
     {"code": "print(len('Python'))", "answer": "6"},
@@ -34,40 +34,70 @@ QUESTIONS = [
     {"code": "for i in range(3):\n    for j in range(2):\n        print(i, j)", "answer": "0 0\n0 1\n1 0\n1 1\n2 0\n2 1"}
 ]
 
+# 점수 저장소 (이름: 점수)
+students_score = {}
+
+# ---------- 라우트 정의 ----------
+
+@app.route('/start', methods=['GET', 'POST'])
+def start():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        if name:
+            session['name'] = name
+            session['question_index'] = 0
+            if name not in students_score:
+                students_score[name] = 0
+            return redirect(url_for('index'))
+    return render_template('start.html')
+
 
 @app.route('/')
 def index():
-    question_index = session.get('question_index', 0)
+    name = session.get('name')
+    if not name:
+        return redirect(url_for('start'))
 
-    if question_index >= len(QUESTIONS):
-        question_index = 0  # 모든 문제를 풀었으면 처음부터 다시
+    q_index = session.get('question_index', 0)
+    if q_index >= len(QUESTIONS):
+        q_index = 0
+        session['question_index'] = 0  # 다시 처음부터
 
-    current_question = QUESTIONS[question_index]
-    session['question_index'] = question_index  # 현재 인덱스를 저장
-    session['code'] = current_question["code"]  # 정답 확인을 위해 코드 저장
-
-    return render_template('index.html', code_snippet=current_question["code"])
+    question = QUESTIONS[q_index]
+    session['code'] = question['code']  # 현재 문제 저장
+    return render_template('index.html',
+                           code_snippet=question['code'],
+                           my_score=students_score.get(name, 0),
+                           ranking=get_top_rankings())
 
 
 @app.route('/check', methods=['POST'])
 def check_answer():
+    name = session.get('name')
     user_answer = request.json.get("answer", "").strip()
     code_str = session.get("code", "")
     correct_output = execute_code(code_str).strip()
 
     if user_answer == correct_output:
+        students_score[name] += 1
+        session['question_index'] = session.get('question_index', 0) + 1
         result = 'correct'
-        session['question_index'] = session.get('question_index', 0) + 1  # 다음 문제로 이동
     else:
         result = 'wrong'
 
     return jsonify({
         "result": result,
-        "correct_answer": correct_output
+        "correct_answer": correct_output,
+        "my_score": students_score[name],
+        "ranking": get_top_rankings()
     })
 
 
-# 실제 코드 실행 결과를 문자열로 반환
+def get_top_rankings():
+    sorted_scores = sorted(students_score.items(), key=lambda x: x[1], reverse=True)
+    return [{"name": n, "score": s} for n, s in sorted_scores[:5]]
+
+
 def execute_code(code_str):
     output = io.StringIO()
     try:

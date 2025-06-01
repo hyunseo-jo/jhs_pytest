@@ -35,6 +35,18 @@
 
         <!-- 결과 피드백 출력 -->
         <div class="feedback" id="feedback"></div>
+
+        <!-- 점수 및 랭킹 표시 -->
+        <div class="scoreboard">
+            <hr>
+            <h2>📊 내 점수: <span id="my-score">{{ my_score }}</span>점</h2>
+            <h3>🏆 랭킹 Top 5</h3>
+            <ol id="ranking-list">
+                {% for item in ranking %}
+                <li>{{ item.name }} - {{ item.score }}점</li>
+                {% endfor %}
+            </ol>
+        </div>
     </div>
 
     <!-- 자바스크립트 -->
