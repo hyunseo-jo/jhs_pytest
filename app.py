@@ -1,13 +1,18 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import io
 import contextlib
+import os
+import json
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # 세션용 비밀키
 
+# 점수 파일 경로
+SCORE_FILE = 'students_score.json'
+
 # 퀴즈 문제 목록
 QUESTIONS = [
- {"code": "print(1 + 2)", "answer": "3"},
+   {"code": "print(1 + 2)", "answer": "3"},
     {"code": "print('Hello' + 'World')", "answer": "HelloWorld"},
     {"code": "a = 3\nb = 4\nprint(a * b)", "answer": "12"},
     {"code": "print(len('Python'))", "answer": "6"},
@@ -34,8 +39,19 @@ QUESTIONS = [
     {"code": "for i in range(3):\n    for j in range(2):\n        print(i, j)", "answer": "0 0\n0 1\n1 0\n1 1\n2 0\n2 1"}
 ]
 
-# 점수 저장소 (이름: 점수)
-students_score = {}
+# 점수 저장 및 불러오기
+def load_scores():
+    if os.path.exists(SCORE_FILE):
+        with open(SCORE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+def save_scores(scores):
+    with open(SCORE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(scores, f, ensure_ascii=False, indent=2)
+
+# 전역 점수 딕셔너리
+students_score = load_scores()
 
 # ---------- 라우트 정의 ----------
 
@@ -48,6 +64,7 @@ def start():
             session['question_index'] = 0
             if name not in students_score:
                 students_score[name] = 0
+                save_scores(students_score)
             return redirect(url_for('index'))
     return render_template('start.html')
 
@@ -61,10 +78,10 @@ def index():
     q_index = session.get('question_index', 0)
     if q_index >= len(QUESTIONS):
         q_index = 0
-        session['question_index'] = 0  # 다시 처음부터
+        session['question_index'] = 0
 
     question = QUESTIONS[q_index]
-    session['code'] = question['code']  # 현재 문제 저장
+    session['code'] = question['code']
     return render_template('index.html',
                            code_snippet=question['code'],
                            my_score=students_score.get(name, 0),
@@ -74,6 +91,9 @@ def index():
 @app.route('/check', methods=['POST'])
 def check_answer():
     name = session.get('name')
+    if not name or name not in students_score:
+        return jsonify({"result": "error", "message": "세션이 만료되었거나 이름이 없습니다."})
+
     user_answer = request.json.get("answer", "").strip()
     code_str = session.get("code", "")
     correct_output = execute_code(code_str).strip()
@@ -81,6 +101,7 @@ def check_answer():
     if user_answer == correct_output:
         students_score[name] += 1
         session['question_index'] = session.get('question_index', 0) + 1
+        save_scores(students_score)
         result = 'correct'
     else:
         result = 'wrong'
