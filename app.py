@@ -1,50 +1,68 @@
 from flask import Flask, render_template, request, jsonify
-import random
 import io
 import contextlib
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key'  # 세션 사용 시 필요
 
-# 파이썬 코드 문제 리스트 (문제: 실제출력)
+# 문제 리스트
 QUESTIONS = [
-    {"code": "print(1 + 2)", "answer": "3"},
-    {"code": "print('Hello' + 'World')", "answer": "HelloWorld"},
-    {"code": "a = 3\nb = 4\nprint(a * b)", "answer": "12"},
-    {"code": "print(len('Python'))", "answer": "6"},
-    {"code": "print('파이썬'.upper())", "answer": "파이썬"},
-    {"code": "print(10 // 3)", "answer": "3"},
-    {"code": "print(10 % 3)", "answer": "1"},
-    {"code": "for i in range(2):\n    print('Hi')", "answer": "Hi\nHi"},
-    {"code": "def greet():\n    print('Hello')\ngreet()", "answer": "Hello"},
-    {"code": "a = [1, 2, 3]\nprint(a[0])", "answer": "1"},
-    {"code": "a = [1, 2, 3]\na.append(4)\nprint(len(a))", "answer": "4"},
-    {"code": "a = [10, 20, 30]\nprint(sum(a))", "answer": "60"},
-    {"code": "s = 'banana'\nprint(s.count('a'))", "answer": "3"},
-    {"code": "s = 'Python'\nprint(s[::-1])", "answer": "nohtyP"},
-    {"code": "x = 5\ny = x\nx = 10\nprint(y)", "answer": "5"},
-    {"code": "def square(n):\n    return n * n\nprint(square(3))", "answer": "9"},
-    {"code": "x = [1, 2, 3]\nprint(x[-1])", "answer": "3"},
-    {"code": "print(type('3'))", "answer": "<class 'str'>"},
-    {"code": "for i in range(1, 4):\n    print(i * '*')", "answer": "*\n**\n***"},
-    {"code": "for i in range(3):\n    for j in range(2):\n        print(i, j)", "answer": "0 0\n0 1\n1 0\n1 1\n2 0\n2 1"}
-]
+    {"code": "age = 17\nprint(age)", "answer": "17"},
+    {"code": "a = 10\nb = a\na = 5\nprint(b)", "answer": "10"},
+    {"code": "a = b = c = 2024\na = a + 1\nb = b - 1\nc = a + b\nprint(c)", "answer": "4048"},
+    {"code": "변수명으로 사용할 수 없는 것은?\n1.a\n2.A\n3.Stu_num\n4.1st_num\n5._min_num", "answer": "4"},
+    {"code": "a = 5\nif a == 5:\n   print(True)", "answer": "True"},
+    {"code": "b = 13\nif b > 10:\n   print(b)", "answer": "13"},
+    {"code": "a = 10\nb = 5\nif a < b:\n   a = a - b\nprint(a)", "answer": "10"},
+    {"code": "for i in range(5):\n   print(i)", "answer": "0\n1\n2\n3\n4"},
+    {"code": "for i in range(0,5,2):\n   print(i)", "answer": "0\n2\n4"},
+    {"code": "다음 프로그램에서 3을 입력한 후 실행 결과를쓰시오.\na=int(input())\nfor i in range(2+a):\n   print(i)", "answer": "0\n1\n2\n3\n4\n5"},
+    {"code": "semester = ['정보','수학','과학']\nfor subject in semester:\n   print(subject)", "answer": "정보\n수학\n과학"},
+    {"code": "name = 'Hong Gil Dong'\nfor i in name\n   print(i)", "answer": "H\no\nn\ng\n \nG\ni\nl\n \nD\no\nn\ng"},
+    {"code": "17을 입력했을 때 출력 결과는? \n age = int(input())]\n if age < 13:\n   print("전체 관람가")\nelse:\n   if age < 18:\n      print("12세 이상 관람가")\n   else:\n      print("성인 관람가")", "answer": "12세 이상 관람가"},
+    {"code": "28을 입력했을 때 출력 결과는? \n tem = int(input())]\n if tem < 0:\n   print("두꺼운 코트")\nelse:\n   if tem < 20:\n      print("가벼운 자켓")\n   else:\n      print("반팔 티셔츠")", "answer": "반팔 티셔츠"},
+    {"code": "rows = 5\ni = 1\nwhile i <= rows:\n   j = 1\n   while j<=i\n      print("*", end=" ")\n      j=j+1\n   print()\n   i=i+1", "answer": "*\n**\n***\n****\n*****"},
+    {"code": "a = [1,2,3,4]\nprint(a)", "answer" : "[1,2,3,4]"},
+    {"code": "b = ['딸기',12,7,'복숭아']\nprint(b)", "answer" : "['딸기',12,7,'복숭아']"},
+    {"code": "c = 'Hello Python'\nprint(c)", "answer" : "Hello Python"},
+    {"code": "과일 = ['딸기','바나나','사과']", "answer" : "딸기"},
+    {"code": "출력 결과가 8일 때, 밑줄에 알맞은 숫자를 쓰시오.\nnum = [1,2,_,4,5]\nprint(num[-1]+num[2])","answer":"3"},    # ... 필요시 계속 추가]
+    {"code": "출력 결과가 P일 때, 밑줄에 알맞은 명령어를 쓰시오.\nchar = 'Hello! Python'\nprint(_____)","answer":"char[7] or char[-6]"},    # ... 필요시 계속 추가]
+    {"code": "def hello():\n   print('hi')\n   print("hello")\n\nhello()","answer":"hi\nhello"},    # ... 필요시 계속 추가]
+    {"code": "def even(number):\n   return number % 2 == 0\n\nprint(even(4)\nprint(even(7)))","answer":"True\nFalse"},    # ... 필요시 계속 추가]
+    {"code": "def factorial(n):\n   if n == 1:\n      return 1\n   return n * factorial(n-1)\n\nprint(factorial(5))","answer":"120"},    # ... 필요시 계속 추가]
+    {"code": "def fibo(n):\n   if n <= 1:\n      return n\n   return fibo(n-1) + fibo(n-2)\n\nprint(fibo(7))","answer":"13"}]    # ... 필요시 계속 추가]
 
-current_question = {}
+
+
+
+
+
+
+
+# 문제 번호를 저장하는 전역 변수
+current_index = 0
 
 @app.route('/')
 def index():
-    global current_question
-    current_question = random.choice(QUESTIONS)
-    return render_template('index.html', code_snippet=current_question["code"])
+    global current_index
+    if current_index >= len(QUESTIONS):
+        current_index = 0  # 마지막 문제까지 푼 경우 처음으로
+
+    question = QUESTIONS[current_index]
+    return render_template('index.html', code_snippet=question["code"])
 
 @app.route('/check', methods=['POST'])
 def check_answer():
-    global current_question
+    global current_index
     user_answer = request.json.get("answer", "").strip()
-    correct_output = execute_code(current_question["code"]).strip()
+    question = QUESTIONS[current_index]
+
+    correct_output = execute_code(question["code"]).strip()
 
     if user_answer == correct_output:
         result = 'correct'
+        current_index += 1  # 다음 문제로 넘어감
     else:
         result = 'wrong'
 
