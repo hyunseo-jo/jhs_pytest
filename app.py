@@ -5,12 +5,12 @@ import contextlib
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
 
-# 문제 리스트 (input 포함 문제는 코드 실행 없이 처리됨)
+# 문제 리스트 (객관식은 exec: False로 표시)
 QUESTIONS = [
     {"code": "age = 17\nprint(age)", "answer": "17"},
     {"code": "a = 10\nb = a\na = 5\nprint(b)", "answer": "10"},
     {"code": "a = b = c = 2024\na = a + 1\nb = b - 1\nc = a + b\nprint(c)", "answer": "4048"},
-    {"code": "변수명으로 사용할 수 없는 것은?\n1.a\n2.A\n3.Stu_num\n4.1st_num\n5._min_num", "answer": "4"},
+    {"code": "변수명으로 사용할 수 없는 것은?\n1.a\n2.A\n3.Stu_num\n4.1st_num\n5._min_num", "answer": "4", "exec": False},
     {"code": "a = 5\nif a == 5:\n   print(True)", "answer": "True"},
     {"code": "b = 13\nif b > 10:\n   print(b)", "answer": "13"},
     {"code": "a = 10\nb = 5\nif a < b:\n   a = a - b\nprint(a)", "answer": "10"},
@@ -50,10 +50,11 @@ def check_answer():
     user_answer = request.json.get("answer", "").strip()
     question = QUESTIONS[current_index]
     correct_output = question["answer"].strip()
-
     correct_answers = [ans.strip() for ans in correct_output.split("or")]
 
-    if 'input(' in question["code"]:
+    exec_flag = question.get("exec", True)
+
+    if not exec_flag or 'input(' in question["code"]:
         is_correct = user_answer in correct_answers
     else:
         executed_output = execute_code(question["code"]).strip()
